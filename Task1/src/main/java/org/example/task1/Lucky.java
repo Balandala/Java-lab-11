@@ -31,7 +31,9 @@ public class Lucky {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        int range = 999_999 / 3;
+
+        int tCount = 3;
+        int range = 999_999 / tCount;
         Thread t1 = new LuckyThread(0, range);
         Thread t2 = new LuckyThread(range, 2 * range);
         Thread t3 = new LuckyThread(2 * range, 3 * range + 1);
