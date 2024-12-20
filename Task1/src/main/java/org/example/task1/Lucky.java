@@ -3,46 +3,51 @@ package org.example.task1;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Lucky {
-    static AtomicInteger count = new AtomicInteger(0);
-
+    private static int x = 0;
+    private static int count = 0;
+    private final static Object lock = new Object();
 
     static class LuckyThread extends Thread {
-        private final int start;
-        private final int end;
-
-
-        LuckyThread(int start, int end){
-            this.start = start;
-            this.end = end;
-        }
-
-
         @Override
         public void run() {
-            for (int x = start; x < end; x++) {
-                x++;
-                if ((x % 10) + (x / 10) % 10 + (x / 100) % 10 == (x / 1000)
-                        % 10 + (x / 10000) % 10 + (x / 100000) % 10) {
-                    System.out.printf("%s %d\n",Thread.currentThread().getName(),x);
-                    count.incrementAndGet();
+            while (true) {
+                int localX;
+                synchronized (lock) {
+                    if (x >= 999999) {
+                        break;
+                    }
+                    localX = x;
+                    x++;
+                }
+
+                if (isLucky(localX)) {
+                    synchronized (lock) {
+                        count++;
+                    }
+                    System.out.printf("%s %d\n", Thread.currentThread().getName(), localX);
                 }
             }
+        }
+
+        private boolean isLucky(int number) {
+            return (number % 10) + (number / 10) % 10 + (number / 100) % 10
+                    == (number / 1000) % 10 + (number / 10000) % 10 + (number / 100000) % 10;
         }
     }
 
     public static void main(String[] args) throws InterruptedException {
+        Thread t1 = new LuckyThread();
+        Thread t2 = new LuckyThread();
+        Thread t3 = new LuckyThread();
 
-        int tCount = 3;
-        int range = 999_999 / tCount;
-        Thread t1 = new LuckyThread(0, range);
-        Thread t2 = new LuckyThread(range, 2 * range);
-        Thread t3 = new LuckyThread(2 * range, 3 * range + 1);
         t1.start();
         t2.start();
         t3.start();
+
         t1.join();
         t2.join();
         t3.join();
+
         System.out.println("Total: " + count);
     }
 }
